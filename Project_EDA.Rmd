@@ -1,0 +1,59 @@
+---
+title: "Project_EDA"
+author: "Da Crew feat 3/4 of Infectious Diseasez"
+date: "11/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(olsrr)
+library(MASS)
+```
+
+```{r}
+data <- read_excel("clean_amusement_data.xlsx")
+str(data)
+data <- mutate(data, main = if_else(main == "No", 0, 1))
+data <- mutate(data, story = if_else(story == "No", 0, 1))
+data <- mutate(data, Indoor = if_else(location == "Indoor", 1, 0),
+                     Outdoor = if_else(location == "Outdoor", 1, 0))
+data <- dplyr::select(data, -location, -name, -vehicle)
+```
+0 = not main, 1 = main; same for story
+Location column removed, indoor and outdoor columns made. 
+If 0 in both indoor and outdoor columns than the ride is both indoor and outdoor
+
+Very longgggg
+```{r}
+park_model <- lm(wait ~ ., data = data)
+all_poss_model <- ols_step_all_possible(park_model)
+```
+
+```{r}
+full_mod <- lm(wait ~ ., data = data)
+base_mod <- lm(wait ~ 1, data = data)
+forward_mod <- stepAIC(base_mod, direction = "forward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+forward_mod$anova
+```
+Length, interest_ya, Outdoor, story, interest_senior selected from forward selection.
+
+```{r}
+backward_mod <- stepAIC(full_mod, direction = "backward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+backward_mod$anova
+```
+Length, interest_teen, interest_ya, story, thrill, outdoor are all selected from backward
+
+Four are common between the two approaches.
+
+```{r}
+step_mod <- stepAIC(full_mod, direction = "both", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+step_mod$anova
+```
+Same variables as backward selection
+
