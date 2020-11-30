@@ -15,6 +15,12 @@ library(MASS)
 
 ```{r}
 data <- read_excel("clean_amusement_data.xlsx")
+count_shows <- data[which(data$vehicle == "Show"),]
+ggplot(data = count_shows) +
+  geom_point(aes(x = length, y = wait))
+ggplot(data = data) +
+  geom_point(aes(x = length, y = wait))
+
 str(data)
 data <- mutate(data, main = if_else(main == "No", 0, 1))
 data <- mutate(data, story = if_else(story == "No", 0, 1))
@@ -22,15 +28,24 @@ data <- mutate(data, Indoor = if_else(location == "Indoor", 1, 0),
                      Outdoor = if_else(location == "Outdoor", 1, 0))
 data <- dplyr::select(data, -location, -name, -vehicle)
 ```
+Interest_teen and interest_ya are very similar in ratings, possible collinearity
 0 = not main, 1 = main; same for story
 Location column removed, indoor and outdoor columns made. 
 If 0 in both indoor and outdoor columns than the ride is both indoor and outdoor
 
-Very longgggg
+
 ```{r}
 park_model <- lm(wait ~ ., data = data)
 all_poss_model <- ols_step_all_possible(park_model)
+which.max(all_poss_model$adjr)
+all_poss_model[9949,]$adjr
+all_poss_model[9949,]$predictors
+which.min(all_poss_model$cp)
+all_poss_model[1941,]$predictors
 ```
+Adjusted R^2 has length, interest_teen, interest_ya, interest_senior, story, thrill, and Outdoor
+Cp gives length, interest_ya, interest_senior, story, and Outdoor
+
 
 ```{r}
 full_mod <- lm(wait ~ ., data = data)
@@ -57,3 +72,165 @@ step_mod$anova
 ```
 Same variables as backward selection
 
+```{r}
+forward_model <- lm(wait ~ length + interest_ya + Outdoor + story + interest_senior, data = data)
+summary(forward_model)
+anova(forward_model)
+```
+Says interest_senior is not significant
+
+```{r}
+backward_step_model <- lm(wait ~ length + interest_teen + interest_ya + story + thrill + Outdoor, data = data)
+summary(backward_step_model)
+anova(backward_step_model)
+```
+Summary says interest_teen and interest_ya and thrill are not significant
+ANOVA says all are signficant
+
+Highest adjusted R^2 from all possible model:
+```{r}
+rsq_model <- lm(wait ~ length + interest_teen + interest_ya + interest_senior + thrill + story + Outdoor, data = data)
+summary(rsq_model)
+anova(rsq_model)
+```
+Interest_senior, interest_ya, and interest_teen and thrill not significant in summary
+Thrill not significant in anova
+Best model based on adjusted R-squared value (0.4633) (relationship with R^2 in all possible model? bc same as above)
+
+Lowest Cp from all possible model
+```{r}
+cp_model <- lm(wait ~ length + interest_ya + interest_senior + story + Outdoor, data = data)
+summary(cp_model)
+anova(cp_model)
+```
+Interest_senior not sig in sum
+Note forward and cp model have same regressors but interest_senior and Outdoor are swapped. 
+Same R^2, different ANOVAs
+
+
+```{r}
+com_model <- lm(wait ~ length + interest_ya + Outdoor + story, data = data)
+summary(com_model)
+anova(com_model)
+```
+All variables sig in sum and anova
+
+
+We will continue using the rsq_model because it has the best adjusted R^2 despite the 3 regressors being not sig in summary.
+
+Looking for influence and leverage points:
+```{r}
+inf_meas <- influence.measures(rsq_model)
+true_false <- inf_meas$is.inf
+```
+
+
+Residual Analysis:
+```{r}
+residuals_rsq <- rstandard(rsq_model)
+qqnorm(residuals_rsq)
+qqline(residuals_rsq)
+```
+Upper tail could use some help. Other than that its good. page 138 says positive skewed
+
+```{r}
+fitted_rsq <- fitted.values(rsq_model)
+ggplot()+
+  geom_point(aes(x = fitted_rsq, y = residuals_rsq))
+```
+Relatively good. Slight negative trend on bottom left hand corner. Potential outliers on far right
+
+Residuals vs Regressors:
+Length
+```{r}
+ggplot()+
+  geom_point(aes(x = data$length, y = residuals_rsq))
+```
+Group/cluster near positive and negative y axis.
+
+Interest_teen
+```{r}
+ggplot()+
+  geom_point(aes(x = data$interest_teen, y = residuals_rsq))
+```
+Horizontal band of points
+
+Interest_ya
+```{r}
+ggplot()+
+  geom_point(aes(x = data$interest_ya, y = residuals_rsq))
+```
+Right skewed with one outlier at rating 1
+
+Interest_senior
+```{r}
+ggplot()+
+  geom_point(aes(x = data$interest_senior, y = residuals_rsq))
+```
+More right skewed with few points on lower end
+
+
+Thrill
+```{r}
+ggplot()+
+  geom_point(aes(x = data$thrill, y = residuals_rsq))
+```
+Funnel getting smaller the bigger the thrill
+
+Story
+```{r}
+ggplot()+
+  geom_point(aes(x = data$story, y = residuals_rsq))
+```
+???
+
+Outdoor
+```{r}
+ggplot()+
+  geom_point(aes(x = data$Outdoor, y = residuals_rsq))
+```
+???
+
+Partial Regressions:
+Note can not perform on categorical/indicator variables
+```{r}
+mod_wo_length <- lm(wait ~ interest_teen + interest_ya + interest_senior + thrill + story + Outdoor, data = data)
+mod_w_length_pred <- lm(length ~ interest_teen + interest_ya + interest_senior + thrill + story + Outdoor, data = data)
+ggplot()+
+  geom_point(aes(x = mod_w_length_pred$residuals, y = mod_wo_length$residuals))
+```
+Decent positive correlation
+
+
+```{r}
+mod_wo_int_teen <- lm(wait ~ length + interest_ya + interest_senior + thrill + story + Outdoor, data = data)
+mod_w_int_teen_pred <- lm(interest_teen ~ length + interest_ya + interest_senior + thrill + story + Outdoor, data = data)
+ggplot()+
+  geom_point(aes(x = mod_w_int_teen_pred$residuals, y = mod_wo_int_teen$residuals))
+```
+Blob, agrees with summary says non sig
+
+```{r}
+mod_wo_int_ya <- lm(wait ~ length + interest_teen + interest_senior + thrill + story + Outdoor, data = data)
+mod_w_int_ya_pred <- lm(interest_ya ~ length + interest_teen + interest_senior + thrill + story + Outdoor, data = data)
+ggplot()+
+  geom_point(aes(x = mod_w_int_ya_pred$residuals, y = mod_wo_int_ya$residuals))
+```
+More blob same as above
+
+```{r}
+mod_wo_int_sen <- lm(wait ~ length + interest_teen + interest_ya + thrill + story + Outdoor, data = data)
+mod_w_int_sen_pred <- lm(interest_senior ~ length + interest_teen + interest_ya + thrill + story + Outdoor, data = data)
+ggplot()+
+  geom_point(aes(x = mod_w_int_sen_pred$residuals, y = mod_wo_int_sen$residuals))
+```
+Want relationship, see none. that is good because agrees with summary saying not sig
+
+
+```{r}
+mod_wo_thrill <- lm(wait ~ length + interest_teen + interest_ya + interest_senior + story + Outdoor, data = data)
+mod_w_thrill_pred <- lm(thrill ~ length + interest_teen + interest_ya + interest_senior + story + Outdoor, data = data)
+ggplot()+
+  geom_point(aes(x = mod_w_thrill_pred$residuals, y = mod_wo_thrill$residuals))
+```
+Could draw multiple lines thru:/
