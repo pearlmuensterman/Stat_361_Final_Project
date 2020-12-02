@@ -1,0 +1,104 @@
+---
+title: "Ride vs Show"
+author: "Pearl Muensterman"
+date: "12/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(olsrr)
+library(MASS)
+```
+
+
+```{r}
+data4 <- read_excel("clean_amusement_data.xlsx")
+
+str(data4)
+data4 <- mutate(data4, main = if_else(main == "No", 0, 1))
+data4 <- mutate(data4, story = if_else(story == "No", 0, 1))
+data4 <- mutate(data4, Indoor = if_else(location == "Indoor", 1, 0),
+                     Outdoor = if_else(location == "Outdoor", 1, 0))
+data4 <- mutate(data4, interest_adult_avg = (interest_adult + interest_teen + interest_ya)/3)
+data4 <- mutate(data4, ride = if_else(vehicle == "Show", 0, 1))
+data_ride <- dplyr::select(data4, -location, -name, -vehicle, -interest_adult, -interest_teen, -interest_ya)
+```
+
+
+All Possible
+```{r}
+park_model <- lm(wait ~ ., data = data_ride)
+all_poss_model_4 <- ols_step_all_possible(park_model)
+which.max(all_poss_model_4$adjr)
+all_poss_model_4[9949,]$adjr
+all_poss_model_4[9949,]$predictors
+which.min(all_poss_model_4$cp)
+all_poss_model_4[1941,]$predictors
+```
+
+
+```{r}
+full_mod <- lm(wait ~ ., data = data_ride)
+base_mod <- lm(wait ~ 1, data = data_ride)
+forward_mod <- stepAIC(base_mod, direction = "forward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+forward_mod$anova
+```
+ride, interest_adult_avg, thrill, sense, story, interest_senior, interest_preschool, length
+
+
+```{r}
+backward_mod <- stepAIC(full_mod, direction = "backward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+backward_mod$anova
+```
+length, interest_preschool, interest_senior, story, thrill, sense, interest_adult_avg, ride
+
+```{r}
+step_mod <- stepAIC(full_mod, direction = "both", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+step_mod$anova
+```
+length, interest_preschool, interest_senior, story, thrill, sense, interest_adult_avg, ride
+
+```{r}
+mod37 <- lm(wait ~ length + interest_preschool + interest_senior + story + thrill + sense + interest_adult_avg + ride, data = data_ride)
+summary(mod37)
+anova(mod37)
+```
+Adj R2 0.5845 (best so far)
+
+```{r}
+mod37_sig <- lm(wait ~ story + thrill + interest_adult_avg + ride, data = data_ride)
+summary(mod37_sig)
+```
+Adj r2 0.5558
+
+```{r}
+mod37_anova <- lm(wait ~ length + interest_preschool + interest_senior + story + sense + interest_adult_avg + ride, data = data_ride)
+summary(mod37_anova)
+```
+Adj R2 0.5666 (better than summary regressors)
+
+
+RESIDUALS ON THIS MODEL:
+wait ~ length + interest_preschool + interest_senior + story + thrill + sense + interest_adult_avg + ride
+
+```{r}
+residuals_ride <- rstandard(mod37)
+qqnorm(residuals_ride)
+qqline(residuals_ride)
+```
+Upper tail could use some help. Other than that its good. page 138 says positive skewed
+Positive skew thought because shows yeah
+
+```{r}
+fitted_37 <- fitted.values(mod37)
+ggplot()+
+  geom_point(aes(x = fitted_37, y = residuals_ride))
+```
+
+Transformation probs wont help. Just need more appropriate variables.

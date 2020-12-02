@@ -1,0 +1,91 @@
+---
+title: "Combining interest"
+author: "Pearl Muensterman"
+date: "12/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(olsrr)
+library(MASS)
+```
+
+```{r}
+data3 <- read_excel("clean_amusement_data.xlsx")
+
+str(data3)
+data3 <- mutate(data3, main = if_else(main == "No", 0, 1))
+data3 <- mutate(data3, story = if_else(story == "No", 0, 1))
+data3 <- mutate(data3, Indoor = if_else(location == "Indoor", 1, 0),
+                     Outdoor = if_else(location == "Outdoor", 1, 0))
+data3 <- mutate(data3, interest_adult_avg = (interest_adult + interest_teen + interest_ya)/3)
+data_com <- filter(data3, vehicle != "Show")
+data_com <- dplyr::select(data_com, -location, -name, -vehicle, -interest_adult, -interest_teen, -interest_ya)
+```
+
+
+All Possible
+```{r}
+park_model <- lm(wait ~ ., data = data_com)
+all_poss_model_3 <- ols_step_all_possible(park_model)
+which.max(all_poss_model_3$adjr)
+all_poss_model_3[9949,]$adjr
+all_poss_model_3[9949,]$predictors
+which.min(all_poss_model_3$cp)
+all_poss_model_3[1941,]$predictors
+```
+
+
+```{r}
+full_mod <- lm(wait ~ ., data = data_com)
+base_mod <- lm(wait ~ 1, data = data_com)
+forward_mod <- stepAIC(base_mod, direction = "forward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+forward_mod$anova
+```
+Outdoor, interest_adult_avg, length, story, Indoor
+
+
+```{r}
+backward_mod <- stepAIC(full_mod, direction = "backward", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+backward_mod$anova
+```
+length, story, Indoor, Outdoor, interest_adult_avg
+
+```{r}
+step_mod <- stepAIC(full_mod, direction = "both", trace = FALSE, 
+                       scope = list(upper = full_mod, lower = base_mod))
+step_mod$anova
+```
+length, story, Indoor, Outdoor, interest_adult_avg
+
+
+```{r}
+mod3 <- lm(wait ~ length + story + Indoor + Outdoor + interest_adult_avg, data = data_com)
+summary(mod3)
+```
+Adj r2 0.4928 (best so far)
+
+
+```{r}
+mod3_sig <- lm(wait ~ length + Outdoor + interest_adult_avg, data = data_com)
+summary(mod3_sig)
+```
+adj r2 0.4832
+
+```{r}
+residuals_show <- rstandard(mod3)
+qqnorm(residuals_show)
+qqline(residuals_show)
+```
+Upper tail could use some help. Other than that its good. page 138 says positive skewed EVEN W/O SHOWS
+
+```{r}
+fitted_show <- fitted.values(mod3)
+ggplot()+
+  geom_point(aes(x = fitted_show, y = residuals_show))
+```
