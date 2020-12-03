@@ -26,6 +26,9 @@ data2 <- mutate(data2, Indoor = if_else(location == "Indoor", 1, 0),
                      Outdoor = if_else(location == "Outdoor", 1, 0))
 data_no_show <- filter(data2, vehicle != "Show")
 data_no_show <- dplyr::select(data_no_show, -location, -name, -vehicle)
+
+ggplot(data_no_show) +
+  geom_histogram(aes(x = length))
 ```
 
 All Possible
