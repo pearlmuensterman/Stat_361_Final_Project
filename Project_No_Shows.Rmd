@@ -33,12 +33,14 @@ All Possible
 park_model <- lm(wait ~ ., data = data_no_show)
 all_poss_model2 <- ols_step_all_possible(park_model)
 which.max(all_poss_model2$adjr)
-all_poss_model2[9949,]$adjr
-all_poss_model2[9949,]$predictors
+all_poss_model2[27824,]$adjr
+all_poss_model2[27824,]$predictors
 which.min(all_poss_model2$cp)
-all_poss_model2[1941,]$predictors
+all_poss_model2[576,]$predictors
 ```
-
+best r^2: main age length interest_teen interest_ya interest_senior story sense Indoor Outdoor
+best r^2 = 0.4923444
+best cp: length interest_ya story Outdoor
 
 ```{r}
 full_mod <- lm(wait ~ ., data = data_no_show)

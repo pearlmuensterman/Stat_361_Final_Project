@@ -33,11 +33,14 @@ All Possible
 park_model <- lm(wait ~ ., data = data_ride)
 all_poss_model_4 <- ols_step_all_possible(park_model)
 which.max(all_poss_model_4$adjr)
-all_poss_model_4[9949,]$adjr
-all_poss_model_4[9949,]$predictors
+all_poss_model_4[6476,]$adjr
+all_poss_model_4[6476,]$predictors
 which.min(all_poss_model_4$cp)
-all_poss_model_4[1941,]$predictors
+all_poss_model_4[470,]$predictors
 ```
+Adjusted R^2: length interest_preschool story thrill Outdoor interest_adult_avg ride
+Adjusted R^2 = 0.6141189
+Best cp: story Outdoor interest_adult_avg ride
 
 
 ```{r}
