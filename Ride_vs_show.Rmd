@@ -11,6 +11,7 @@ library(tidyverse)
 library(readxl)
 library(olsrr)
 library(MASS)
+library(MPV)
 ```
 
 
@@ -37,10 +38,11 @@ all_poss_model_4[6476,]$adjr
 all_poss_model_4[6476,]$predictors
 which.min(all_poss_model_4$cp)
 all_poss_model_4[470,]$predictors
+all_poss_model_4[470,]$adjr
 ```
 Adjusted R^2: length interest_preschool story thrill Outdoor interest_adult_avg ride
 Adjusted R^2 = 0.6141189
-Best cp: story Outdoor interest_adult_avg ride
+Best cp: story Outdoor interest_adult_avg ride (R^2: 0.6116745)
 
 
 ```{r}
@@ -86,12 +88,17 @@ summary(mod37_anova)
 ```
 Adj R2 0.5666 (better than summary regressors)
 
+```{r}
+best_mod <- lm(wait~length + interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+summary(best_mod)
+```
+
 
 RESIDUALS ON THIS MODEL:
-wait ~ length + interest_preschool + interest_senior + story + thrill + sense + interest_adult_avg + ride
+wait~length + interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride
 
 ```{r}
-residuals_ride <- rstandard(mod37)
+residuals_ride <- rstandard(best_mod)
 qqnorm(residuals_ride)
 qqline(residuals_ride)
 ```
@@ -99,9 +106,43 @@ Upper tail could use some help. Other than that its good. page 138 says positive
 Positive skew thought because shows yeah
 
 ```{r}
-fitted_37 <- fitted.values(mod37)
+fitted_37 <- fitted.values(best_mod)
 ggplot()+
   geom_point(aes(x = fitted_37, y = residuals_ride))
 ```
 
 Transformation probs wont help. Just need more appropriate variables.
+
+Partial Regressions:
+Note can not perform on categorical/indicator variables
+```{r}
+mod_wo_length <- lm(wait~ interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_length_pred <- lm(length ~ interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_length_pred$residuals, y = mod_wo_length$residuals))
+```
+Not seeing a linear relationship which implies there is not a linear relationship between regressor and response. 
+
+```{r}
+mod_wo_preschool <- lm(wait~ length + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_preschool_pred <- lm(interest_preschool ~ length + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_preschool_pred$residuals, y = mod_wo_preschool$residuals))
+```
+Slight positive linear relationship 
+
+```{r}
+mod_wo_thrill <- lm(wait~ length + story + interest_preschool + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_thrill_pred <- lm(thrill ~ length + story + interest_preschool + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_thrill_pred$residuals, y = mod_wo_thrill$residuals))
+```
+Slight positive linear relationship 
+
+```{r}
+mod_wo_adult <- lm(wait~ length + story + interest_preschool + Outdoor + thrill + ride, data = data_ride)
+mod_w_adult_pred <- lm(interest_adult_avg ~ length + story + interest_preschool + Outdoor + thrill + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_adult_pred$residuals, y = mod_wo_adult$residuals))
+```
+No obvious linear relationship

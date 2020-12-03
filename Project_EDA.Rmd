@@ -27,6 +27,9 @@ data <- mutate(data, story = if_else(story == "No", 0, 1))
 data <- mutate(data, Indoor = if_else(location == "Indoor", 1, 0),
                      Outdoor = if_else(location == "Outdoor", 1, 0))
 data <- dplyr::select(data, -location, -name, -vehicle)
+
+ggplot(data) +
+  geom_histogram(aes(x= length))
 ```
 Interest_teen and interest_ya are very similar in ratings, possible collinearity
 0 = not main, 1 = main; same for story
