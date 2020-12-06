@@ -8,13 +8,11 @@ output: powerpoint_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
+## Introduction 
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Data 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
-
-## Slide with Bullets
+## Varibles 
 :::::::::::::: {.columns}
 ::: {.column}
 - Bullet 1
@@ -39,15 +37,12 @@ When you click the **Knit** button a document will be generated that includes bo
 :::
 ::::::::::::::
 
-## Slide with R Output
+## Model One - All Attractions  
 
-```{r cars, echo = TRUE}
-summary(cars)
-```
+## Model Two - No Shows 
 
-## Slide with Plot
+## Model Three - Aggregating Interest Level 
 
-```{r pressure}
-plot(pressure)
-```
+## Model Four - Ride vs Show 
 
+## Conclusion 
