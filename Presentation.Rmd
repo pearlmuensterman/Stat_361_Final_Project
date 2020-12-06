@@ -1,7 +1,9 @@
 ---
-title: "Presentation"
+title: "Frozen In Line: An Analysis of Amusement Park Wait Times"
 author: "Amy Bertelsman, Pearl Muensterman, & Ethan Morlock"
-output: powerpoint_presentation
+output: 
+  powerpoint_presentation: 
+    reference_doc: reference.pptx
 ---
 
 ```{r setup, include=FALSE}
@@ -9,55 +11,97 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ## Introduction 
-This
-is 
-a
-test
-to
-see
-if
-we
-can
-work
-all
-at
-the
-same
-time
-ugh
-## Data 
+- Model wait time for amusement park attractions
+- Why important?
+  + Park managers
+  + Park visitors
+- Hypotheses about longer wait times
+  + Attraction length
+  + Higher interest
+  + Main attractions
+  + New attractions
+  + Roller coasters
+  + Outdoor attractions
 
-## Varibles 
+## Data 
+- Collected for a senior thesis 
+- Collected in 2018 
+- Three Amusement Parks 
+  + Disney World 
+  + Disneyland 
+  + Universal Studios (Orlando) 
+- 128 observations
+- 17 variables 
+
+## Variables 
 :::::::::::::: {.columns}
 ::: {.column}
-- Bullet 1
-- Bullet 2
-- Bullet 3
-- Bullet 4 
-- Bullelt 5 
-- Bullet 6
-- Bullet 7
-- Bullet 8
-- Bullet 9 
+- Attraction Name
+- **Main Ticket Attraction** 
+- Attraction Age 
+- Attraction Length 
+- Height Requirement 
+- Interest Level of Preschool
+- Interest Level of Grade School 
+- Interest Level of Teens
+- Interest Level of Young Adults 
 :::
 ::: {.column}
-- Bullelt 10 
-- Bullet 11
-- Bullet 12
-- Bullet 13
-- Bullet 14 
-- Bullelt 15 
-- Bullet 16
-- Bullet 17
+- Interest Level of Adults
+- Interest Level of Seniors 
+- Attraction Vehicle Type 
+- Average Wait Time (response)
+- **Based on Popular Story**
+- **Attraction Environment** 
+- Average Thrilll Level 
+- Average Senesory Level 
 :::
 ::::::::::::::
 
 ## Model One - All Attractions  
+- Compared results of variable selection methods
+  + Forward selection
+  + Backward elimination
+  + Stepwise regression
+  + All-possible regression
+- Best model from all-possible regression (and for next models too)
+  + Length, teen interest, young adult interest, senior interest, thrill level, based on story, outdoor
+- Adjusted R-squared: 0.4633
 
 ## Model Two - No Shows 
+- Decided to get rid of shows
+  + Influential points, outliers
+- Rides and shows length difference 
+- Best Model
+  + Main attraction, age, length, teen interest, young adult interest, senior interest, based on story, sense level, indoor, outdoor
+- Adjusted R-Squared: 0.4923
 
 ## Model Three - Aggregating Interest Level 
+- Noticed three variables were similar
+  + Collinearity
+- Created a variable average adult interest
+  + Combined teen interest, young adult interest, adult interest
+- Best Model
+  + Main attraction, age, length, based on story, sense level, indoor, outdoor, average adult interest
+- Adjusted R-Squared = 0.4970
 
 ## Model Four - Ride vs Show 
+- Returned shows 
+- Differentiating between rides and shows 
+  + Used vehicle to create an indicator variable for ride (1) and show (0) 
+- Best Model
+  + Length, preschooler interest, based on story, thrill  level, outdoor, average adult interest, ride 
+- Adjusted R-squared: 0.6141 
+- Best overall model
+- Investigated possibility of transformation
+
 
 ## Conclusion 
+- Less than stellar results
+- Need more relevant variables to determine wait time
+  + Location in park (ride groupings)
+  + Number of people serviced in an hour
+  + Daily records of number of people in park for a year
+  + Time and money spent on advertising (in general or specific ride)
+  + Cost of each ride, if applicable
+- Residual analysis shows evidence of nonlinear relationship
