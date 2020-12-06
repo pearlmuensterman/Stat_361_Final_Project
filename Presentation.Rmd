@@ -9,15 +9,23 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ## Introduction 
-
+This
+is 
+a
+test
+to
+see
+if
+we
+can
+work
+all
+at
+the
+same
+time
+ugh
 ## Data 
-
-- C
-- df
-sdfjads
-dflksdjfk
-flkajsdfkj
-kladjf
 
 ## Varibles 
 :::::::::::::: {.columns}
