@@ -1,0 +1,53 @@
+---
+title: "Presentation"
+author: "Amy Bertelsman, Pearl Muensterman, & Ethan Morlock"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+:::::::::::::: {.columns}
+::: {.column}
+- Bullet 1
+- Bullet 2
+- Bullet 3
+- Bullet 4 
+- Bullelt 5 
+- Bullet 6
+- Bullet 7
+- Bullet 8
+- Bullet 9 
+:::
+::: {.column}
+- Bullelt 10 
+- Bullet 11
+- Bullet 12
+- Bullet 13
+- Bullet 14 
+- Bullelt 15 
+- Bullet 16
+- Bullet 17
+:::
+::::::::::::::
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
