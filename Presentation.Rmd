@@ -12,6 +12,13 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Data 
 
+- C
+- df
+sdfjads
+dflksdjfk
+flkajsdfkj
+kladjf
+
 ## Varibles 
 :::::::::::::: {.columns}
 ::: {.column}
