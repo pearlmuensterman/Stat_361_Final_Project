@@ -1,9 +1,7 @@
 ---
 title: "Frozen In Line: An Analysis of Amusement Park Wait Times"
 author: "Amy Bertelsman, Pearl Muensterman, & Ethan Morlock"
-output: 
-  powerpoint_presentation: 
-    reference_doc: reference.pptx
+output: powerpoint_presentation
 ---
 
 ```{r setup, include=FALSE}
