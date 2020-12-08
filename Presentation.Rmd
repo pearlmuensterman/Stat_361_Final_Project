@@ -6,6 +6,10 @@ output: powerpoint_presentation
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(readxl)
+library(olsrr)
+library(MASS)
 ```
 
 ## Introduction 
@@ -51,8 +55,8 @@ knitr::opts_chunk$set(echo = FALSE)
 - Average Wait Time (response)
 - **Based on Popular Story**
 - **Attraction Environment** 
-- Average Thrilll Level 
-- Average Senesory Level 
+- Average Thrill Level 
+- Average Sensory Level 
 :::
 ::::::::::::::
 
@@ -60,9 +64,9 @@ knitr::opts_chunk$set(echo = FALSE)
 - Compared results of variable selection methods
   + Forward selection
   + Backward elimination
-  + Stepwise regression
+  + Step-wise regression
   + All-possible regression
-- Best model from all-possible regression (and for next models too)
+- Best model from all-possible regression
   + Length, teen interest, young adult interest, senior interest, thrill level, based on story, outdoor
 - Adjusted R-squared: 0.4633
 
@@ -103,3 +107,103 @@ knitr::opts_chunk$set(echo = FALSE)
   + Time and money spent on advertising (in general or specific ride)
   + Cost of each ride, if applicable
 - Residual analysis shows evidence of nonlinear relationship
+
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+data <- read_excel("clean_amusement_data.xlsx")
+ggplot(data) +
+  geom_histogram(aes(x= length)) + 
+  ggtitle("Distribution of Length of Attraction") + 
+  xlab("Length of Attraction") +
+  ylab("Count")
+```
+
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+data2 <- read_excel("clean_amusement_data.xlsx")
+data2 <- mutate(data2, main = if_else(main == "No", 0, 1))
+data2 <- mutate(data2, story = if_else(story == "No", 0, 1))
+data2 <- mutate(data2, Indoor = if_else(location == "Indoor", 1, 0),
+                     Outdoor = if_else(location == "Outdoor", 1, 0))
+data_no_show <- filter(data2, vehicle != "Show")
+data_no_show <- dplyr::select(data_no_show, -location, -name, -vehicle)
+
+ggplot(data_no_show) +
+  geom_histogram(aes(x = length))+ 
+  ggtitle("Distribution of Length of Ride") + 
+  xlab("Length of Ride") +
+  ylab("Count")
+```
+
+## Appendix
+```{r, echo = FALSE, warning = FALSE}
+data4 <- read_excel("clean_amusement_data.xlsx")
+data4 <- mutate(data4, main = if_else(main == "No", 0, 1))
+data4 <- mutate(data4, story = if_else(story == "No", 0, 1))
+data4 <- mutate(data4, Indoor = if_else(location == "Indoor", 1, 0),
+                     Outdoor = if_else(location == "Outdoor", 1, 0))
+data4 <- mutate(data4, interest_adult_avg = (interest_adult + interest_teen + interest_ya)/3)
+data4 <- mutate(data4, ride = if_else(vehicle == "Show", 0, 1))
+data_ride <- dplyr::select(data4, -location, -name, -vehicle, -interest_adult, -interest_teen, -interest_ya)
+best_mod <- lm(wait~length + interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+residuals_ride <- rstandard(best_mod)
+qqnorm(residuals_ride)
+qqline(residuals_ride)
+```
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE}
+fitted_ride <- fitted.values(best_mod)
+ggplot()+
+  geom_point(aes(x = fitted_ride, y = residuals_ride)) +
+  ggtitle("Residuals vs Fitted Values Plot") + 
+  xlab("Fitted Values") +
+  ylab("Residuals")
+```
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE}
+mod_wo_preschool <- lm(wait~ length + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_preschool_pred <- lm(interest_preschool ~ length + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_preschool_pred$residuals, y = mod_wo_preschool$residuals))+
+  ggtitle("Partial Regression Plot for Preschooler Interest Level") + 
+  xlab("Residuals of Model Regressed on Preschoolers") +
+  ylab("Residuals of Model without Preschoolers")
+```
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE}
+mod_wo_length <- lm(wait~ interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_length_pred <- lm(length ~ interest_preschool + story + thrill + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_length_pred$residuals, y = mod_wo_length$residuals))+
+  ggtitle("Partial Regression Plot for Length of Attraction") + 
+  xlab("Residuals of Model Regressed on Length") +
+  ylab("Residuals of Model without Length")
+```
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE}
+mod_wo_thrill <- lm(wait~ length + story + interest_preschool + Outdoor + interest_adult_avg + ride, data = data_ride)
+mod_w_thrill_pred <- lm(thrill ~ length + story + interest_preschool + Outdoor + interest_adult_avg + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_thrill_pred$residuals, y = mod_wo_thrill$residuals))+
+  ggtitle("Partial Regression Plot for Average Thrill Level") + 
+  xlab("Residuals of Model Regressed on Thrill") +
+  ylab("Residuals of Model without Thrill")
+```
+
+## Appendix 
+```{r, echo = FALSE, warning = FALSE}
+mod_wo_adult <- lm(wait~ length + story + interest_preschool + Outdoor + thrill + ride, data = data_ride)
+mod_w_adult_pred <- lm(interest_adult_avg ~ length + story + interest_preschool + Outdoor + thrill + ride, data = data_ride)
+ggplot()+
+  geom_point(aes(x = mod_w_adult_pred$residuals, y = mod_wo_adult$residuals))+
+  ggtitle("Partial Regression Plot for Average Adult Interest") + 
+  xlab("Residuals of Model Regressed on Average Adults") +
+  ylab("Residuals of Model without Average Adults")
+```
+
